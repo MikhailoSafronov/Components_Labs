@@ -14,8 +14,16 @@ class FakeAbortSignal {
     }
 }
 
+function promiseMapCancelable(array, asyncFn, { signal } = {}) {
+    if (signal && signal.aborted) {
+        return Promise.reject(new Error("Aborted before start"));
+    }
+    return Promise.all(array.map(asyncFn));
+}
+
 // Тест:
-const signal = new FakeAbortSignal();
-console.log("Before abort:", signal.aborted);
-signal.abort();
-console.log("After abort:", signal.aborted); // true
+const s = new FakeAbortSignal();
+s.abort(); // скасування одразу
+promiseMapCancelable([1,2,3], num => Promise.resolve(num*2), { signal: s })
+    .then(console.log)
+    .catch(err => console.error( err.message));

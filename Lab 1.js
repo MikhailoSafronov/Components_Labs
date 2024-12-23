@@ -1,7 +1,8 @@
-function asyncMap(array, asyncFn, doneCallback) {
+function asyncMapWithDebounce(array, asyncFn, doneCallback, debounceThreshold = 1000) {
   let results = new Array(array.length);
   let pending = array.length;
   let hasError = false;
+  const startTime = Date.now();
 
   if (pending === 0) {
     return doneCallback(null, []);
@@ -17,19 +18,21 @@ function asyncMap(array, asyncFn, doneCallback) {
       results[index] = transformed;
       pending--;
       if (pending === 0 && !hasError) {
-        doneCallback(null, results);
+        const elapsed = Date.now() - startTime;
+        if (elapsed < debounceThreshold) {
+          const waitTime = debounceThreshold - elapsed;
+          setTimeout(() => doneCallback(null, results), waitTime);
+        } else {
+          doneCallback(null, results);
+        }
       }
     });
   });
 }
 
-// Тест з помилкою:
-asyncMap([1,2,3], (num, cb) => {
-  setTimeout(() => {
-    if (num === 2) cb(new Error("Test error"));
-    else cb(null, num*2);
-  }, 100);
+// Тест:
+asyncMapWithDebounce([1,2,3], (num, cb) => {
+  setTimeout(() => cb(null, num*2), 100);
 }, (err, res) => {
-  console.log( err, res);
-  // Очікуємо: err = Error("Test error"), res = undefined
-});
+  console.log("debounce test:", err, res); // ~через 1 сек null [2,4,6]
+}, 1000);

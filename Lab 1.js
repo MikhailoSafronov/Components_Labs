@@ -22,10 +22,14 @@ function asyncMap(array, asyncFn, doneCallback) {
     });
   });
 }
-// Тест:
-asyncMap([1,2,3], (num, cb) => {
-  setTimeout(() => cb(null, num*2), 500);
-}, (err, res) => {
-  console.log( err, res); // Очікуємо: null [2,4,6]
-});
 
+// Тест з помилкою:
+asyncMap([1,2,3], (num, cb) => {
+  setTimeout(() => {
+    if (num === 2) cb(new Error("Test error"));
+    else cb(null, num*2);
+  }, 100);
+}, (err, res) => {
+  console.log( err, res);
+  // Очікуємо: err = Error("Test error"), res = undefined
+});

@@ -13,12 +13,20 @@ class DataEmitter extends EventEmitter {
     }
 }
 
-const emitter = new DataEmitter();
+const source = new DataEmitter();
+const destination = new EventEmitter();
 
-emitter.on('data', d => {
+// Обробка: передаємо тільки парні дані далі, множимо на 10
+source.on('data', d => {
     if (d % 2 === 0) {
-        console.log("Even data:", d);
+        destination.emit('processedData', d * 10);
     }
 });
-emitter.on('end', () => console.log("No more data."));
-emitter.startEmitting();
+source.on('end', () => destination.emit('done'));
+
+destination.on('processedData', val => {
+    console.log("Processed data received:", val);
+});
+destination.on('done', () => console.log("All done"));
+
+source.startEmitting();

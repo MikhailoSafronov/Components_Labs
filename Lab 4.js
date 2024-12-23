@@ -1,14 +1,15 @@
 async function* largeDataSource() {
-    for (let i = 0; i < 5; i++) {
-        await new Promise(resolve => setTimeout(resolve, 30));
+    for (let i = 0; i < 3; i++) {
+        await new Promise(resolve => setTimeout(resolve, 100));
         yield i;
     }
 }
 
-(async () => {
+async function processAndStore() {
     for await (const item of largeDataSource()) {
-        if (item % 2 === 0) {
-            console.log( item);
-        }
+        console.log("Storing item:", item);
     }
-})();
+    console.log("All processed and stored.");
+}
+
+processAndStore();

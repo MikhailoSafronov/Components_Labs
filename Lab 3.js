@@ -1,4 +1,3 @@
-
 class FakeAbortSignal {
     constructor() {
         this.aborted = false;
@@ -28,18 +27,24 @@ function promiseMapCancelable(array, asyncFn, { signal } = {}) {
     return Promise.all(promises);
 }
 
-function delayedDouble(num, signal) {
+function cancellableDouble(num, signal) {
     return new Promise((resolve, reject) => {
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
             if (signal && signal.aborted) return reject(new Error("Aborted"));
             resolve(num*2);
-        }, 100);
+        }, 500);
+
+        if (signal) {
+            signal.addEventListener('abort', () => {
+                clearTimeout(timeoutId);
+                reject(new Error("Aborted"));
+            });
+        }
     });
 }
 
 // Тест:
 const s = new FakeAbortSignal();
-setTimeout(() => s.abort(), 50);
-promiseMapCancelable([1,2,3], delayedDouble, { signal: s })
-    .then(console.log)
-    .catch(err => console.error(err.message));
+const p = promiseMapCancelable([1,2,3], cancellableDouble, { signal: s });
+setTimeout(() => s.abort(), 100);
+p.then(console.log).catch(err => console.error("Canceled:", err.message));

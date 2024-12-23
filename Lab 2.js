@@ -2,15 +2,15 @@ function promiseMap(array, asyncFn) {
     return Promise.all(array.map(asyncFn));
 }
 
-function sometimesFail(num) {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            if (num === 2) reject(new Error("Failed on 2"));
-            else resolve(num*2);
-        }, 300);
-    });
+function doubleAsync(num) {
+    return new Promise(resolve => setTimeout(() => resolve(num*2), 200));
 }
 
-promiseMap([1,2,3], sometimesFail)
-    .then(res => console.log( res))
-    .catch(err => console.error("Error:", err.message)); // "Failed on 2"
+(async () => {
+    try {
+        const result = await promiseMap([1,2,3], doubleAsync);
+        console.log("async/await:", result); // [2,4,6]
+    } catch (err) {
+        console.error(err);
+    }
+})();

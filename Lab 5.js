@@ -14,6 +14,11 @@ class DataEmitter extends EventEmitter {
 }
 
 const emitter = new DataEmitter();
-emitter.on('data', d => console.log("Received data:", d));
+
+emitter.on('data', d => {
+    if (d % 2 === 0) {
+        console.log("Even data:", d);
+    }
+});
 emitter.on('end', () => console.log("No more data."));
 emitter.startEmitting();
